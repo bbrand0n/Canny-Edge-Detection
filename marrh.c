@@ -26,11 +26,11 @@ char **argv;
     char    *foobar;
     
     // Input file
-    fp1=fopen("garb34.pgm","rb");
+    fp1=fopen("input pictures/garb34.pgm","rb");
     
     // Output files
-    fo1=fopen("out1.pgm","wb");
-    fo2=fopen("out2.pgm","wb");
+    fo1=fopen("output pictures/out1.pgm","wb");
+    fo2=fopen("output pictures/out2.pgm","wb");
     
     // Sigma value
     sig = 1.0;
@@ -145,7 +145,7 @@ char **argv;
 
         // Which cone?
         if ( (slope <= 0.4142) && (slope > -0.4142) ) {
-            if (ival[i][j] > ival[i][j-1] && ival[i][j] > ival[i][j+1])
+            if (ival[i][j] > ival[i-1][j] && ival[i][j] > ival[i+1][j])
                 peaks[i][j] = 255;
         }
         else if ( (slope <= 2.4142) && (slope > 0.4142) ) {
@@ -153,11 +153,11 @@ char **argv;
                 peaks[i][j] = 255;
         }
         else if ( (slope <= -0.4142) && (slope > -2.4142) ) {
-            if (ival[i][j] > ival[i+1][j-1] && ival[i][j] > ival[i-1][j+1])
+            if (ival[i][j] > ival[i-1][j+1] && ival[i][j] > ival[i+1][j-1])
                 peaks[i][j] = 255;
         }
         else {
-            if (ival[i][j] > ival[i-1][j] && ival[i][j] > ival[i+1][j])
+            if (ival[i][j] > ival[i][j-1] && ival[i][j] > ival[i][j+1])
                 peaks[i][j] = 255;
         }
         }
