@@ -14,6 +14,7 @@ double convx[PICSIZE][PICSIZE];
 double convy[PICSIZE][PICSIZE];
 double ival[PICSIZE][PICSIZE];
 double peaks[PICSIZE][PICSIZE];
+double final[PICSIZE][PICSIZE];
 
 int main(argc,argv)
 int argc;
@@ -22,7 +23,7 @@ char **argv;
     // Local vars
     int     i,j,p,q,s,t,mr,centx,centy;
     double  maskvalx,maskvaly,sumx,sumy,sig,maxival,minival,maxval,ZEROTOL, slope;
-    FILE    *fo1, *fo2, *fp1, *fopen();
+    FILE    *fo1, *fo2, *fo3, *fp1, *fopen();
     char    *foobar;
     
     // Input file
@@ -31,12 +32,13 @@ char **argv;
     // Output files
     fo1=fopen("output pictures/out1.pgm","wb");
     fo2=fopen("output pictures/out2.pgm","wb");
+    fo3=fopen("output pictures/out3.pgm","wb");
     
     // Sigma value
     sig = 1.0;
     
     // Zero tolerance
-    ZEROTOL = atof(foobar);
+    //ZEROTOL = atof(foobar);
     
     mr = (int)(sig * 3);
     centx = (MAXMASK / 2);
@@ -167,17 +169,88 @@ char **argv;
     for (i=0;i<256;i++) { 
         for (j=0;j<256;j++) {  
                 if(peaks[i][j] == 255)
-                    fprintf(fo2,"%c",(char)((int)(255))); //(peaks[i][j])));
+                    fprintf(fo2,"%c",(char)((int)(255)));
                 else
                     fprintf(fo2,"%c",(char)((int)(0)));
-                //fprintf(fo2,"%c",(char)((int)(peaks[i][j])));
         }
     }
 
     
-
-
     // ----------------------------- END OF PART TWO --------------------------
+    
+    
+    // Format headings of file 2
+    fprintf(fo3, "P5\n");
+    fprintf(fo3, "%d %d\n", 256, 256);
+    fprintf(fo3, "255\n");
+    
+    
+    // Hard code thresholds
+    int hi = 100;
+    int lo = 35;
+    int moreToDo;
+    
+    
+    // Loop to find magnitudes that pass/fail threshold
+    for(i=mr; i<256-mr; i++) {
+        for(j=mr; j<256-mr; j++) {
+            
+            // Check for peaks
+            if (peaks[i][j] == 255) {
+                if (ival[i][j] > hi) {
+                    peaks[i][j] = 0;
+                    final[i][j] = 255;
+                }
+                else if (ival[i][j] < lo) {
+                    peaks[i][j] = 0;
+                    final[i][j] = 0;
+                }
+            }
+        }
+    }
+    
+    
+    // Still have to check for median magnitudes
+    moreToDo = 1;
+    
+    
+    // Loop to decide if median mags should stay
+    while (moreToDo == 1) {
+        moreToDo = 0;
+        
+        for(i=mr; i<256-mr; i++) {
+            for(j=mr; j<256-mr; j++) {
+                
+                // Check for peaks
+                if (peaks[i][j] == 255) {
+                    for(int p=-1; p<=1; p++) {
+                        for(int q=-1; q<=1; q++) {
+                            if(final[i+p][j+q] == 255) {
+                                peaks[i][j] = 0;
+                                final[i][j] = 255;
+                                moreToDo = 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    //Print image
+    for (i=0;i<256;i++) {
+        for (j=0;j<256;j++) {
+                if(final[i][j] == 255)
+                    fprintf(fo3,"%c",(char)((int)(255)));
+                else
+                    fprintf(fo3,"%c",(char)((int)(0)));
+        }
+    }
+
+
+// ----------------------------- END OF PART THREE --------------------------
+    
     //  // Max vals
     //  maxval  = 0;
     //  maxival = 0;
@@ -265,5 +338,10 @@ char **argv;
         //       fprintf(fo2,"%c",(char)((int)(outpic2[i][j])));
         //   }
         // }
+
+        fclose(fp1);
+        fclose(fo1);
+        fclose(fo2);
+        fclose(fo3);
  }
 
