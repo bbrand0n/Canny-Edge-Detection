@@ -15,14 +15,16 @@ double convy[PICSIZE][PICSIZE];
 double ival[PICSIZE][PICSIZE];
 double peaks[PICSIZE][PICSIZE];
 double final[PICSIZE][PICSIZE];
+int histogram[PICSIZE];
 
 int main(argc,argv)
 int argc;
 char **argv;
 {
     // Local vars
-    int     i,j,p,q,s,t,mr,centx,centy;
-    double  maskvalx,maskvaly,sumx,sumy,sig,maxival,minival,maxval,ZEROTOL, slope;
+    int     i,j,p,q,s,t,mr,centx,centy, moreToDo;
+    double  maskvalx,maskvaly,sumx,sumy,sig,maxival,minival,maxval,
+                ZEROTOL, slope, percent, cutoff, areaOfTops, hi, lo;
     FILE    *fo1, *fo2, *fo3, *fp1, *fopen();
     char    *foobar;
     
@@ -30,9 +32,9 @@ char **argv;
     fp1=fopen("input pictures/garb34.pgm","rb");
     
     // Output files
-    fo1=fopen("output pictures/out1.pgm","wb");
-    fo2=fopen("output pictures/out2.pgm","wb");
-    fo3=fopen("output pictures/out3.pgm","wb");
+    fo1=fopen("output pictures/magnitute.pgm","wb");
+    fo2=fopen("output pictures/cannypeaks.pgm","wb");
+    fo3=fopen("output pictures/cannyfinal.pgm","wb");
     
     // Sigma value
     sig = 1.0;
@@ -137,7 +139,7 @@ char **argv;
 
         // Make sure we dont divide by 0
         if (ival[i][j] == 0.0)
-            ival[i][j] = 0.00001;
+            ival[i][j] = 0.0001;
 
         // Get slope
         slope = convy[i][j] / convx[i][j];
@@ -178,6 +180,34 @@ char **argv;
     
     // ----------------------------- END OF PART TWO --------------------------
     
+    // Get percent input from user
+    //printf("Enter a percent to scale magnitutes: ");
+    //scanf("%lf", &percent); 
+    percent = 0.05;
+    
+    // Histogram of scaled magnitudes
+    for(i=0; i<256; i++) {
+        for(j=0; j<256; j++) {
+            (histogram[(int)round(ival[i][j])])++;
+        }
+    }
+
+
+    // Compute cutoff
+    cutoff = percent * PICSIZE * PICSIZE;
+
+    for(i=PICSIZE; i>=1; i--) {
+        areaOfTops += histogram[i];
+        
+        if(areaOfTops > cutoff) 
+            break;
+    
+    }
+
+    // Set hi and lo
+    hi = i;
+    lo = 0.35 * hi;
+
     
     // Format headings of file 2
     fprintf(fo3, "P5\n");
@@ -185,10 +215,9 @@ char **argv;
     fprintf(fo3, "255\n");
     
     
-    // Hard code thresholds
-    int hi = 100;
-    int lo = 35;
-    int moreToDo;
+    // Hard code thresholds --- THIS IS HANDLED IN PART 4 AUTOMATICALLY
+    // int hi = 100;
+    // int lo = 35;
     
     
     // Loop to find magnitudes that pass/fail threshold
